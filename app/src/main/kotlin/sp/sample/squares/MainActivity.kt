@@ -51,8 +51,9 @@ internal class MainActivity : AppCompatActivity() {
                     CompositionLocalProvider(
                         LocalSquaresStyle provides SquaresStyle(
                             color = Color.Yellow,
-                            squareSize = DpSize(width = 12.dp, height = 24.dp),
+                            squareSize = DpSize(width = 16.dp, height = 24.dp),
                             paddingOffset = DpOffset(x = 12.dp, y = 24.dp),
+                            cornerRadius = 12.dp,
                             backgroundContext = Dispatchers.IO,
                         )
                     ) {
