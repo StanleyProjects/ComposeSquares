@@ -13,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
 import sp.ax.jc.squares.LocalSquaresStyle
 import sp.ax.jc.squares.Squares
 import sp.ax.jc.squares.SquaresStyle
@@ -50,6 +52,8 @@ internal class MainActivity : AppCompatActivity() {
                         LocalSquaresStyle provides SquaresStyle(
                             color = Color.Yellow,
                             squareSize = DpSize(width = 12.dp, height = 24.dp),
+                            paddingOffset = DpOffset(x = 12.dp, y = 24.dp),
+                            backgroundContext = Dispatchers.IO,
                         )
                     ) {
                         Squares(
