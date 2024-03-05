@@ -38,7 +38,8 @@ fun Squares(
                 .size(
                     DpSize(
                         width = paddingOffset.x + squareSize.width * 2,
-                        height = paddingOffset.y + squareSize.height * 2),
+                        height = paddingOffset.y + squareSize.height * 2
+                    ),
                 ),
         ) {
             val size = squareSize.toSize()
@@ -52,6 +53,21 @@ fun Squares(
             drawRoundRect(
                 color = color.copy(alpha = (alphaState.floatValue - 0.25f).ct(1f)),
                 topLeft = Offset.Zero.copy(x = size.width + paddingOffset.x.toPx()),
+                size = size,
+                cornerRadius = corners,
+            )
+            drawRoundRect(
+                color = color.copy(alpha = (alphaState.floatValue - 0.75f).ct(1f)),
+                topLeft = Offset.Zero.copy(y = size.height + paddingOffset.y.toPx()),
+                size = size,
+                cornerRadius = corners,
+            )
+            drawRoundRect(
+                color = color.copy(alpha = (alphaState.floatValue - 0.50f).ct(1f)),
+                topLeft = Offset(
+                    x = size.width + paddingOffset.x.toPx(),
+                    y = size.height + paddingOffset.y.toPx(),
+                ),
                 size = size,
                 cornerRadius = corners,
             )
