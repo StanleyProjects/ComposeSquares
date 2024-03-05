@@ -1,4 +1,5 @@
 import com.android.build.gradle.api.BaseVariant
+import com.android.build.gradle.api.LibraryVariant
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import sp.gx.core.Badge
 import sp.gx.core.GitHub
@@ -14,6 +15,7 @@ import sp.gx.core.create
 import sp.gx.core.kebabCase
 import sp.gx.core.resolve
 import sp.gx.core.task
+import sp.gx.core.getByName
 
 version = "0.0.1"
 
@@ -38,11 +40,14 @@ plugins {
 }
 
 fun BaseVariant.getVersion(): String {
-    check(flavorName.isEmpty())
-    return when (buildType.name) {
-        "debug" -> kebabCase(version.toString(), "SNAPSHOT")
-        "release" -> version.toString()
-        else -> error("Build type \"${buildType.name}\" is not supported!")
+    return when (flavorName) {
+        "unstable" -> {
+            when (buildType.name) {
+                "debug" -> kebabCase(version.toString() + "u", "SNAPSHOT")
+                else -> error("Build type \"${buildType.name}\" is not supported for flavor \"$flavorName\"!")
+            }
+        }
+        else -> error("Flavor name \"$flavorName\" is not supported!")
     }
 }
 
@@ -149,13 +154,38 @@ android {
 
     composeOptions.kotlinCompilerExtensionVersion = Version.Android.compose
 
-    libraryVariants.all {
-        val variant = this
+    productFlavors {
+        mapOf(
+            "stability" to setOf(
+                "unstable",
+            ),
+        ).forEach { (dimension, flavors) ->
+            flavorDimensions += dimension
+            flavors.forEach { flavor ->
+                create(flavor) {
+                    this.dimension = dimension
+                }
+            }
+        }
+    }
+
+    fun onVariant(variant: LibraryVariant) {
+        val supported = setOf(
+            "unstableDebug",
+        )
+        if (!supported.contains(variant.name)) {
+            tasks.getByName(camelCase("pre", variant.name, "Build")) {
+                doFirst {
+                    error("Variant \"${variant.name}\" is not supported!")
+                }
+            }
+            return
+        }
         val output = variant.outputs.single()
         check(output is com.android.build.gradle.internal.api.LibraryVariantOutputImpl)
-        output.outputFileName = getOutputFileName("aar")
+        output.outputFileName = variant.getOutputFileName("aar")
         checkReadme(variant)
-        if (buildType.name == testBuildType) {
+        if (variant.buildType.name == testBuildType) {
             // todo
         }
         assemblePom(variant)
@@ -163,16 +193,45 @@ android {
         assembleMetadata(variant)
 //        assembleMavenMetadata(variant) // todo
         afterEvaluate {
-            tasks.getByName<JavaCompile>(camelCase("compile", variant.name, "JavaWithJavac")) {
+            tasks.getByName<JavaCompile>("compile", variant.name, "JavaWithJavac") {
                 targetCompatibility = Version.jvmTarget
             }
-            tasks.getByName<KotlinCompile>(camelCase("compile", variant.name, "Kotlin")) {
+            tasks.getByName<KotlinCompile>("compile", variant.name, "Kotlin") {
                 kotlinOptions {
                     jvmTarget = Version.jvmTarget
-                    freeCompilerArgs = freeCompilerArgs + setOf("-module-name", colonCase(maven.group, maven.id))
+                    freeCompilerArgs = freeCompilerArgs + setOf("-module-name", maven.moduleName())
                 }
             }
+            val checkManifestTask = task(camelCase("checkManifest", variant.name)) {
+                dependsOn(camelCase("compile", variant.name, "Sources"))
+                doLast {
+                    val file = buildDir()
+                        .dir("intermediates/merged_manifest")
+                        .dir(variant.name)
+                        .asFile("AndroidManifest.xml")
+                    val manifest = groovy.xml.XmlParser().parse(file)
+                    val actual = manifest.getAt(groovy.namespace.QName("uses-permission")).map { node ->
+                        check(node is groovy.util.Node)
+                        node.attributes().map { (key, value) ->
+                            check(key is groovy.namespace.QName)
+                            check(value is String)
+                            key.toString() to value
+                        }.toMap()["{http://schemas.android.com/apk/res/android}name"]
+                            ?: error("No name!")
+                    }.toSet()
+                    val expected = emptySet<String>()
+                    check(actual.sorted() == expected.sorted()) {
+                        "Actual is:\n$actual\nbut expected is:\n$expected"
+                    }
+                }
+            }
+            tasks.getByName(camelCase("assemble", variant.name)) {
+                dependsOn(checkManifestTask)
+            }
         }
+    }
+    libraryVariants.all {
+        onVariant(this)
     }
 }
 
