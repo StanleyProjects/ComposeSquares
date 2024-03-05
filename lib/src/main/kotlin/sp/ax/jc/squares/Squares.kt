@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun Squares(
-    color: Color,
+    color: Color = LocalSquaresStyle.current.color,
 ) {
     Box(modifier = Modifier.size(32.dp).background(color))
 }
