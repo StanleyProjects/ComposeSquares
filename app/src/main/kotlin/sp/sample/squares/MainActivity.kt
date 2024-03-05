@@ -13,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import sp.ax.jc.squares.LocalSquaresStyle
 import sp.ax.jc.squares.Squares
 import sp.ax.jc.squares.SquaresStyle
@@ -33,20 +35,28 @@ internal class MainActivity : AppCompatActivity() {
                         .fillMaxWidth()
                         .align(Alignment.Center),
                 ) {
-                    Box(modifier = Modifier.weight(1f).wrapContentWidth()) {
-                        Squares()
-                    }
-                    Box(modifier = Modifier.weight(1f).wrapContentWidth()) {
-                        Squares(color = Color.Red)
-                    }
-                    Box(modifier = Modifier.weight(1f).wrapContentWidth()) {
-                        CompositionLocalProvider(
-                            LocalSquaresStyle provides SquaresStyle(
-                                color = Color.Yellow,
-                            )
-                        ) {
-                            Squares()
-                        }
+                    Squares(
+                        modifier = Modifier
+                            .weight(1f)
+                            .wrapContentWidth(),
+                    )
+                    Squares(
+                        modifier = Modifier
+                            .weight(1f)
+                            .wrapContentWidth(),
+                        color = Color.Red,
+                    )
+                    CompositionLocalProvider(
+                        LocalSquaresStyle provides SquaresStyle(
+                            color = Color.Yellow,
+                            squareSize = DpSize(width = 12.dp, height = 24.dp),
+                        )
+                    ) {
+                        Squares(
+                            modifier = Modifier
+                                .weight(1f)
+                                .wrapContentWidth(),
+                        )
                     }
                 }
             }
