@@ -12,10 +12,10 @@ import sp.gx.core.camelCase
 import sp.gx.core.check
 import sp.gx.core.colonCase
 import sp.gx.core.create
+import sp.gx.core.getByName
 import sp.gx.core.kebabCase
 import sp.gx.core.resolve
 import sp.gx.core.task
-import sp.gx.core.getByName
 
 version = "0.0.1"
 

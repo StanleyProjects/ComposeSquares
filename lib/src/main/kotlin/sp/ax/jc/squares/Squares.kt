@@ -38,7 +38,7 @@ fun Squares(
                 .size(
                     DpSize(
                         width = paddingOffset.x + squareSize.width * 2,
-                        height = paddingOffset.y + squareSize.height * 2
+                        height = paddingOffset.y + squareSize.height * 2,
                     ),
                 ),
         ) {
