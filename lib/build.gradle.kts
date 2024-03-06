@@ -11,6 +11,9 @@ import sp.gx.core.buildDir
 import sp.gx.core.camelCase
 import sp.gx.core.check
 import sp.gx.core.create
+import sp.gx.core.existing
+import sp.gx.core.file
+import sp.gx.core.filled
 import sp.gx.core.getByName
 import sp.gx.core.kebabCase
 import sp.gx.core.task
@@ -58,9 +61,9 @@ fun assemblePom(variant: BaseVariant) {
     tasks.create("assemble", variant.name, "Pom") {
         doLast {
             val file = buildDir()
-                .dir("maven")
+                .dir("xml")
                 .dir(variant.name)
-                .file(variant.getOutputFileName("pom"))
+                .file("maven.pom.xml")
                 .assemble(
                     maven.pom(
                         version = variant.getVersion(),
@@ -127,13 +130,19 @@ fun checkReadme(variant: BaseVariant) {
 
 fun assembleSource(variant: BaseVariant) {
     task<Jar>("assemble", variant.name, "Source") {
-        archiveBaseName = maven.id
-        archiveVersion = variant.getVersion()
-        archiveClassifier = "sources"
         val sourceSets = variant.sourceSets.flatMap { it.kotlinDirectories }.distinctBy { it.absolutePath }
         from(sourceSets)
+        val dir = buildDir()
+            .dir("sources")
+            .asFile(variant.name)
+        val file = File(dir, "${maven.name(variant.getVersion())}-sources.jar")
+        outputs.upToDateWhen {
+            file.exists()
+        }
         doLast {
-            val file = archiveFile.get().asFile
+            dir.mkdirs()
+            val renamed = archiveFile.get().asFile.existing().file().filled().renameTo(file)
+            check(renamed)
             println("Archive: ${file.absolutePath}")
         }
     }
