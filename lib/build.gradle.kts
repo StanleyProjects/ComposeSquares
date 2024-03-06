@@ -97,29 +97,32 @@ fun assembleMetadata(variant: BaseVariant) {
 fun checkReadme(variant: BaseVariant) {
     tasks.create("check", variant.name, "Readme") {
         doLast {
-            TODO("Unstable!")
-            val badge = Markdown.image(
-                text = "version",
-                url = Badge.url(
-                    label = "version",
-                    message = variant.getVersion(),
-                    color = "2962ff",
-                ),
-            )
-            val expected = setOf(
-                badge,
-                Markdown.link("Maven", Maven.Snapshot.url(maven.group, maven.id, variant.getVersion())),
-                Markdown.link("Documentation", GitHub.pages(gh.owner, gh.name).resolve("doc").resolve(variant.getVersion())),
-                "implementation(\"${colonCase(maven.group, maven.id, variant.getVersion())}\")",
-            )
-            val report = buildDir()
-                .dir("reports/analysis/readme")
-                .dir(variant.name)
-                .asFile("index.html")
-            rootDir.resolve("README.md").check(
-                expected = expected,
-                report = report,
-            )
+            when (variant.name) {
+                "unstableDebug" -> {
+                    val badge = Markdown.image(
+                        text = "version",
+                        url = Badge.url(
+                            label = "version",
+                            message = variant.getVersion(),
+                            color = "2962ff",
+                        ),
+                    )
+                    val expected = setOf(
+                        badge,
+                        Markdown.link("Maven", Maven.Snapshot.url(maven, variant.getVersion())),
+                        "implementation(\"${maven.moduleName(variant.getVersion())}\")",
+                    )
+                    val report = buildDir()
+                        .dir("reports/analysis/readme")
+                        .dir(variant.name)
+                        .asFile("index.html")
+                    rootDir.resolve("README.md").check(
+                        expected = expected,
+                        report = report,
+                    )
+                }
+                else -> error("Variant \"${variant.name}\" is not supported!")
+            }
         }
     }
 }
